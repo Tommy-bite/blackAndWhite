@@ -46,18 +46,31 @@ app.get("/desafio", (req, res) => {
 });
 
 app.post("/image", async (req, res) => {
-  const image = await Jimp.read("https://picsum.photos/1000");
-  const buffer = await image
-    .quality(60)
-    .resize(500, 500)
-    .grayscale()
-    .getBufferAsync(Jimp.MIME_JPEG);
+  const { urlImagen } = req.body;
 
-  const dirname = __dirname + `/public/img/image-${nanoid()}.jpeg`;
-  await image.writeAsync(dirname);
+  console.log("URL Imagen:", urlImagen); 
 
-  res.set("Content-Type", "image/jpeg");
-  return res.send(buffer);
+  if (!urlImagen) {
+    return res.status(400).send("URL de la imagen no proporcionada.");
+  }
+
+  try {
+    const image = await Jimp.read(urlImagen);
+    const buffer = await image
+      .quality(60)
+      .resize(350, 500)
+      .grayscale()
+      .getBufferAsync(Jimp.MIME_JPEG);
+
+    const dirname = __dirname + `/public/img/image-${nanoid()}.jpeg`;
+    await image.writeAsync(dirname);
+
+    res.set("Content-Type", "image/jpeg");
+    return res.send(buffer);
+  } catch (error) {
+    console.error("Error al procesar la imagen:", error);
+    return res.status(500).send("Error procesando la imagen.");
+  }
 });
 
 app.listen(port, () => {
